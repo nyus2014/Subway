@@ -8,13 +8,14 @@
 
 import UIKit
 
-class ViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate, UISearchControllerDelegate, UISearchDisplayDelegate, UITableViewDataSource, UITableViewDelegate {
+class ViewController: UIViewController, UISearchBarDelegate, UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate {
 
-    //for ios 8 UISearchController
-    var searchController : UISearchController!
-    var searchResultController : UITableViewController!
-    //for ios 7 and below, UISearchDisplayController
-    var searchAndDisplayController : UISearchDisplayController!
+    var searchBar : UISearchBar!
+    var imageView : UIImageView!
+    var dot : UIView!
+    var center : CGPoint!
+    
+    @IBOutlet weak var scrollview: UIScrollView!
     
     func isIOS8() -> Bool {
         
@@ -29,53 +30,29 @@ class ViewController: UIViewController, UISearchResultsUpdating, UISearchBarDele
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        searchResultController = UITableViewController()
+        searchBar = UISearchBar();
+        searchBar.delegate = self
+        searchBar.sizeToFit()
+        self.navigationItem.titleView = searchBar
         
-        if isIOS8() {
-            searchController = UISearchController(searchResultsController: searchResultController)
-            searchController.searchResultsUpdater = self
-            searchController.dimsBackgroundDuringPresentation = false
-            
-            searchController.searchBar.sizeToFit()
-            searchController.searchBar.delegate = self
-            searchController.searchBar.setTranslatesAutoresizingMaskIntoConstraints(false)
-            
-            self.view.addSubview(searchController.searchBar)
-            
-            self.view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|-0.0-[searchBar]-0.0-|",
-                options: NSLayoutFormatOptions.fromMask(0),
-                metrics: nil,
-                views: ["searchBar":searchController.searchBar]))
-            
-            self.view.addConstraint(NSLayoutConstraint(
-                item: searchController.searchBar,
-                attribute: NSLayoutAttribute.Top,
-                relatedBy: NSLayoutRelation.Equal,
-                toItem: self.topLayoutGuide,
-                attribute: NSLayoutAttribute.Bottom,
-                multiplier: 1.0,
-                constant: 0.0))
-        } else {
-            let searchBar = UISearchBar();
-            searchBar.delegate = self
-            searchAndDisplayController = UISearchDisplayController(searchBar: searchBar, contentsController: searchResultController)
-            searchBar.sizeToFit()
-            
-            searchAndDisplayController.delegate = self
-            searchAndDisplayController.searchResultsDataSource = self
-            searchAndDisplayController.searchResultsDelegate = self
-            
-        }
+        imageView = UIImageView(image: UIImage(named: "subwaymap"))
+        self.scrollview.addSubview(imageView);
+        self.scrollview.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|-0.0-[imageView]-0.0-|", options: NSLayoutFormatOptions.fromMask(0), metrics: nil, views: ["imageView":imageView]));
+        self.scrollview.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|-0.0-[imageView]-0.0-|", options: NSLayoutFormatOptions.fromMask(0), metrics: nil, views: ["imageView":imageView]));
         
+        self.scrollview.maximumZoomScale = 1.0
+        self.scrollview.minimumZoomScale = 0.14
         
-        
-//        var tableView = UITableView();
-//        tableView.setTranslatesAutoresizingMaskIntoConstraints(false);
-//        self.view.addSubview(tableView);
-        
-        
+        self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: Selector("handleTap:")))
     }
 
+    override func viewWillAppear(animated: Bool) {
+        self.scrollview.zoomScale = 0.14
+        dot = UIView(frame: CGRectMake(1188, 1430, 30, 30))
+        dot.backgroundColor = UIColor.redColor()
+        self.imageView.addSubview(dot);
+        center = dot.center
+    }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -95,5 +72,42 @@ class ViewController: UIViewController, UISearchResultsUpdating, UISearchBarDele
         return UITableViewCell()
     }
 
+    //MARK: UIScrollView Zooming
+    
+    func viewForZoomingInScrollView(scrollView: UIScrollView) -> UIView? {
+        return imageView
+    }
+    
+    func scrollViewWillBeginZooming(scrollView: UIScrollView, withView view: UIView!) {
+        
+    }
+    
+    func scrollViewDidEndZooming(scrollView: UIScrollView, withView view: UIView!, atScale scale: CGFloat) {
+        NSLog("%f", scale)
+    }
+    
+    func scrollViewDidZoom(scrollView: UIScrollView) {
+//        
+//        if dot != nil {
+//            let zoomScale = self.scrollview.zoomScale
+//            println("scale %f", zoomScale)
+//            let x = center.x
+//            let y = center.y
+//            println("x:%f y:%f",x, y)
+//            let x1 = dot.center.x
+//            let y1 = dot.center.y
+//            println("x:%f y:%f",x1, y1)
+//        }
+    }
+    
+    func handleTap(gesture: UITapGestureRecognizer){
+        let point : CGPoint = gesture.locationInView(imageView)
+        let point1 : CGPoint = gesture.locationInView(imageView)
+
+        let zoomScale = self.scrollview.zoomScale
+        println("scale %f", zoomScale)
+        println("x:%f y:%f",point.x, point.y)
+        println()
+    }
 }
 
